@@ -21,6 +21,8 @@
 │   └── chat_client.py
 ├── practice03/       # 练习3：工具调用客户端
 │   └── tool_chat_client.py
+├── practice04/       # 练习4：聊天总结客户端
+│   └── chat_summarize_client.py
 └── README.md         # 项目说明
 ```
 
@@ -112,6 +114,36 @@ python practice03/tool_chat_client.py
 - 实时token统计和性能监控
 - 按Ctrl+C退出
 
+### Practice 04: 聊天总结客户端
+
+基于practice03扩展，实现聊天历史记录自动总结和压缩功能，优化长对话的上下文管理。
+
+**运行:**
+```bash
+python practice04/chat_summarize_client.py
+```
+
+**功能特点:**
+- 继承practice03的所有工具调用能力
+- **自动总结触发条件:**
+  - 对话轮数超过5轮
+  - 上下文长度超过3000字符
+- **总结策略:**
+  - 对前70%左右的历史内容进行压缩总结
+  - 保留最后30%左右的内容原文
+  - 将总结结果插入历史记录顶部
+- 支持工具调用（list_files, rename_file, delete_file, create_file, read_file, curl_url, get_weather）
+- 实时显示总结进度和统计信息
+- 实时token统计和性能监控
+- 按Ctrl+C退出
+
+**总结机制:**
+1. 检测聊天历史是否达到触发条件
+2. 计算需要保留的内容（约30%）和需要总结的内容（约70%）
+3. 调用LLM对需要总结的部分进行压缩
+4. 将总结结果替换原始历史的前半部分
+5. 保留最近的对话内容保持上下文连贯性
+
 ## 使用说明
 
 1. 确保LLM服务已启动并加载了模型
@@ -135,6 +167,7 @@ python practice03/tool_chat_client.py
 1. **Practice 01**：学习基础LLM API调用方式，理解请求/响应结构
 2. **Practice 02**：掌握流式输出和上下文管理，构建交互式聊天
 3. **Practice 03**：学习工具调用机制，实现AI智能体的外部能力扩展
+4. **Practice 04**：学习对话总结和上下文压缩技术，优化长对话管理
 
 ## 注意事项
 
