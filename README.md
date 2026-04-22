@@ -23,6 +23,10 @@
 │   └── tool_chat_client.py
 ├── practice04/       # 练习4：聊天总结客户端
 │   └── chat_summarize_client.py
+├── practice05/       # 练习5：聊天日志客户端
+│   └── chat_log_client.py
+├── practice06/       # 练习6：AnythingLLM查询客户端
+│   └── chat_anythingllm_client.py
 └── README.md         # 项目说明
 ```
 
@@ -144,6 +148,103 @@ python practice04/chat_summarize_client.py
 4. 将总结结果替换原始历史的前半部分
 5. 保留最近的对话内容保持上下文连贯性
 
+### Practice 05: 聊天日志客户端
+
+基于practice04扩展，实现5W关键信息提取和聊天历史搜索功能。
+
+**运行:**
+```bash
+python practice05/chat_log_client.py
+```
+
+**功能特点:**
+- **5W关键信息提取:**
+  - 每5轮对话自动触发
+  - 提取Who（谁）、What（做了什么）、When（时间）、Where（地点）、Why（原因）
+  - 自动记录到 `D:\chat-log\log.txt` 文件
+- **聊天历史搜索:**
+  - 使用 `/search 关键词` 触发搜索
+  - 识别"查找聊天历史"等自然语言表达
+  - 将历史记录与用户请求结合进行分析
+- 增量日志更新，自动创建目录和文件
+- 实时token统计和性能监控
+- 按Ctrl+C退出
+
+**日志格式:**
+```
+==================================================
+时间: 2024-01-15 10:30:00
+Who（谁）: 用户与助手
+What（做了什么）: 讨论天空颜色及科学原理
+When（什么时候）: 
+Where（在哪里）: 
+Why（为什么）: 用户想了解天空呈蓝色的原因
+--- 对话内容 ---
+用户: 天空为什么是蓝色的
+助手: 天空呈现蓝色主要是因为瑞利散射...
+用户: 能详细解释一下吗
+助手: 当然可以，瑞利散射是指...
+==================================================
+```
+
+### Practice 06: AnythingLLM查询客户端
+
+基于practice05扩展，添加使用curl调用AnythingLLM知识库API的功能。
+
+**运行:**
+```bash
+python practice06/chat_anythingllm_client.py
+```
+
+**功能特点:**
+- **继承practice05的所有功能**：5W信息提取、聊天历史搜索、日志记录
+- **新增AnythingLLM查询工具:**
+  - 使用subprocess模块调用curl命令
+  - 访问 `http://localhost:3001/api/v1/workspace/{workspace}/chat` 接口
+  - 使用message字段发送查询
+  - 支持API密钥认证（Bearer Token）
+  - 支持工作区名称配置
+- **工具调用:** `anythingllm_query(message)` - 向AnythingLLM知识库查询数据
+- **工作区管理:** `/workspaces` 命令 - 列出所有可用工作区
+- 完善的错误处理，支持中文错误提示
+- 自动处理API响应，提取textResponse字段
+
+**配置说明:**
+在 `.env` 文件中添加以下配置：
+```env
+ANYTHINGLLM_API_KEY=your_api_key_here
+ANYTHINGLLM_WORKSPACE=ai
+```
+
+**可用命令:**
+- `/search 关键词` - 搜索聊天历史记录
+- `/workspaces` - 列出所有可用的AnythingLLM工作区
+
+**使用示例:**
+```
+你: 查询知识库中关于AI的内容
+AI: <function_calls>{"name":"anythingllm_query","arguments":{"message":"关于AI的内容"}}</function_calls>
+--- 检测到工具调用 ---
+工具名称: anythingllm_query
+参数: {"message": "关于AI的内容"}
+[系统] 执行curl命令: curl -X POST http://localhost:3001/api/v1/workspace/ai/chat ...
+工具执行结果:
+
+人工智能（AI）是一种使机器能够模拟人类智能的技术和学科...
+```
+
+**API响应格式:**
+```json
+{
+  "id": "xxx",
+  "type": "textResponse",
+  "sources": [],
+  "close": true,
+  "error": null,
+  "textResponse": "知识库返回的内容..."
+}
+```
+
 ## 使用说明
 
 1. 确保LLM服务已启动并加载了模型
@@ -168,6 +269,8 @@ python practice04/chat_summarize_client.py
 2. **Practice 02**：掌握流式输出和上下文管理，构建交互式聊天
 3. **Practice 03**：学习工具调用机制，实现AI智能体的外部能力扩展
 4. **Practice 04**：学习对话总结和上下文压缩技术，优化长对话管理
+5. **Practice 05**：学习5W信息提取和聊天历史搜索，实现对话日志记录与检索
+6. **Practice 06**：学习使用subprocess调用外部命令，实现与AnythingLLM知识库的集成
 
 ## 注意事项
 
