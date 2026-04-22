@@ -50,10 +50,64 @@ def get_system_prompt():
                     "required": True
                 }
             }
+        },
+        {
+            "name": "read_file",
+            "description": "读取指定文件的内容",
+            "parameters": {
+                "file_path": {
+                    "type": "string",
+                    "description": "文件路径",
+                    "required": True
+                }
+            }
+        },
+        {
+            "name": "write_file",
+            "description": "将内容写入指定文件，支持追加模式",
+            "parameters": {
+                "file_path": {
+                    "type": "string",
+                    "description": "文件路径",
+                    "required": True
+                },
+                "content": {
+                    "type": "string",
+                    "description": "要写入的内容",
+                    "required": True
+                },
+                "append": {
+                    "type": "boolean",
+                    "description": "是否追加模式，默认False（覆盖）",
+                    "required": False
+                }
+            }
+        },
+        {
+            "name": "delete_file",
+            "description": "删除指定文件",
+            "parameters": {
+                "file_path": {
+                    "type": "string",
+                    "description": "文件路径",
+                    "required": True
+                }
+            }
+        },
+        {
+            "name": "list_files",
+            "description": "列出指定目录中的文件和子目录",
+            "parameters": {
+                "directory": {
+                    "type": "string",
+                    "description": "目录路径",
+                    "required": True
+                }
+            }
         }
     ]
     
-    system_prompt = f"""你是一个聊天助手，具有搜索聊天历史和查询AnythingLLM知识库的能力。
+    system_prompt = f"""你是一个聊天助手，具有搜索聊天历史、查询AnythingLLM知识库和文件操作的能力。
 
 可用工具:
 {json.dumps(tools, ensure_ascii=False, indent=2)}
@@ -153,6 +207,73 @@ def llm_request(env_vars, messages, stream=False):
     except Exception as e:
         print(f"\n[LLM错误] 请求异常: {type(e).__name__}: {str(e)}")
         return None, None
+
+def read_file(file_path):
+    """读取指定文件的内容"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        max_length = 3000
+        if len(content) > max_length:
+            return f"文件内容（前{max_length}字符）:\n{content[:max_length]}\n...\n[内容已截断]"
+        return f"文件内容:\n{content}"
+    except FileNotFoundError:
+        return f"错误：文件不存在 - {file_path}"
+    except PermissionError:
+        return f"错误：没有权限读取文件 - {file_path}"
+    except Exception as e:
+        return f"读取文件时发生错误: {type(e).__name__}: {str(e)}"
+
+def write_file(file_path, content, append=False):
+    """将内容写入指定文件"""
+    try:
+        mode = 'a' if append else 'w'
+        with open(file_path, mode, encoding='utf-8') as f:
+            f.write(content)
+        action = "追加" if append else "写入"
+        return f"成功{action}文件: {file_path}"
+    except PermissionError:
+        return f"错误：没有权限写入文件 - {file_path}"
+    except Exception as e:
+        return f"写入文件时发生错误: {type(e).__name__}: {str(e)}"
+
+def delete_file(file_path):
+    """删除指定文件"""
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return f"成功删除文件: {file_path}"
+        else:
+            return f"错误：文件不存在 - {file_path}"
+    except PermissionError:
+        return f"错误：没有权限删除文件 - {file_path}"
+    except Exception as e:
+        return f"删除文件时发生错误: {type(e).__name__}: {str(e)}"
+
+def list_files(directory):
+    """列出指定目录中的文件和子目录"""
+    try:
+        if os.path.exists(directory):
+            files = os.listdir(directory)
+            if not files:
+                return f"目录为空: {directory}"
+            
+            result = f"目录内容 ({directory}):\n"
+            result += "=" * 40 + "\n"
+            for item in files:
+                item_path = os.path.join(directory, item)
+                if os.path.isdir(item_path):
+                    result += f"[DIR]  {item}\n"
+                else:
+                    size = os.path.getsize(item_path)
+                    result += f"[FILE] {item} ({size} bytes)\n"
+            return result
+        else:
+            return f"错误：目录不存在 - {directory}"
+    except PermissionError:
+        return f"错误：没有权限访问目录 - {directory}"
+    except Exception as e:
+        return f"列出目录时发生错误: {type(e).__name__}: {str(e)}"
 
 def list_anythingllm_workspaces():
     """列出所有可用的AnythingLLM工作区"""
@@ -416,6 +537,8 @@ def main():
     
     print("欢迎使用聊天日志客户端！")
     print("使用 /search 关键词 来搜索聊天历史")
+    print("使用 /workspaces 列出所有AnythingLLM工作区")
+    print("支持文件操作：读取、写入、删除、列出目录")
     print("使用 anythingllm 查询知识库")
     print("按 Ctrl+C 退出\n")
     
@@ -480,6 +603,32 @@ def main():
                         message = func_call['arguments'].get('message', '')
                         print(f"\n[系统] 正在调用AnythingLLM查询...")
                         result = anythingllm_query(message)
+                        print(f"\n工具执行结果:\n{result}")
+                        history.append({"role": "assistant", "content": response + "\n\n工具执行结果:\n" + result})
+                    elif func_call['name'] == 'read_file':
+                        file_path = func_call['arguments'].get('file_path', '')
+                        print(f"\n[系统] 正在读取文件: {file_path}")
+                        result = read_file(file_path)
+                        print(f"\n工具执行结果:\n{result}")
+                        history.append({"role": "assistant", "content": response + "\n\n工具执行结果:\n" + result})
+                    elif func_call['name'] == 'write_file':
+                        file_path = func_call['arguments'].get('file_path', '')
+                        content = func_call['arguments'].get('content', '')
+                        append = func_call['arguments'].get('append', False)
+                        print(f"\n[系统] 正在写入文件: {file_path}")
+                        result = write_file(file_path, content, append)
+                        print(f"\n工具执行结果:\n{result}")
+                        history.append({"role": "assistant", "content": response + "\n\n工具执行结果:\n" + result})
+                    elif func_call['name'] == 'delete_file':
+                        file_path = func_call['arguments'].get('file_path', '')
+                        print(f"\n[系统] 正在删除文件: {file_path}")
+                        result = delete_file(file_path)
+                        print(f"\n工具执行结果:\n{result}")
+                        history.append({"role": "assistant", "content": response + "\n\n工具执行结果:\n" + result})
+                    elif func_call['name'] == 'list_files':
+                        directory = func_call['arguments'].get('directory', '')
+                        print(f"\n[系统] 正在列出目录: {directory}")
+                        result = list_files(directory)
                         print(f"\n工具执行结果:\n{result}")
                         history.append({"role": "assistant", "content": response + "\n\n工具执行结果:\n" + result})
                     else:

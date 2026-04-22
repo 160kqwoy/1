@@ -220,6 +220,12 @@ ANYTHINGLLM_WORKSPACE=ai
 - `/search 关键词` - 搜索聊天历史记录
 - `/workspaces` - 列出所有可用的AnythingLLM工作区
 
+**文件操作工具:**
+- `read_file(file_path)` - 读取指定文件的内容
+- `write_file(file_path, content, append=False)` - 将内容写入指定文件
+- `delete_file(file_path)` - 删除指定文件
+- `list_files(directory)` - 列出指定目录中的文件和子目录
+
 **使用示例:**
 ```
 你: 查询知识库中关于AI的内容
