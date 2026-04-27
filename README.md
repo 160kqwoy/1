@@ -277,6 +277,57 @@ AI: <function_calls>{"name":"anythingllm_query","arguments":{"message":"关于AI
 4. **Practice 04**：学习对话总结和上下文压缩技术，优化长对话管理
 5. **Practice 05**：学习5W信息提取和聊天历史搜索，实现对话日志记录与检索
 6. **Practice 06**：学习使用subprocess调用外部命令，实现与AnythingLLM知识库的集成
+7. **Practice 07**：学习技能系统集成，动态加载技能列表并通过system prompt发送给LLM
+
+---
+
+## Practice 07: 技能系统集成
+
+**功能特点:**
+- 自动读取 `.agents/skills` 目录下的技能列表
+- 支持YAML front matter解析（提取name和description字段）
+- 动态加载技能内容
+- 将技能列表通过system prompt发送给LLM
+
+**核心函数:**
+- `list_available_skills()` - 读取技能列表，提取YAML front matter中的name和description
+- `load_skill_content(skill_name)` - 加载指定技能的正文内容（YAML front matter之后的部分）
+
+**技能文件格式:**
+在 `.agents/skills/技能名称/SKILL.md` 文件中：
+```yaml
+---
+name: 技能名称
+description: 技能描述
+---
+
+技能正文内容...
+```
+
+**新增工具:**
+- `use_skill(skill_name)` - 使用指定的技能
+
+**运行方式:**
+```bash
+python practice07/skill_chat_client.py
+```
+
+**使用示例:**
+```
+[系统] 加载技能: 数据分析 - 分析数据并生成报告
+[系统] 共加载 1 个技能
+欢迎使用技能聊天客户端！
+你: 帮我分析一下销售数据
+AI: <function_calls>{"name":"use_skill","arguments":{"skill_name":"数据分析"}}</function_calls>
+--- 检测到工具调用 ---
+工具名称: use_skill
+参数: {"skill_name": "数据分析"}
+[系统] 正在加载技能: 数据分析
+技能内容:
+...技能正文...
+技能执行结果:
+分析结果如下...
+```
 
 ## 注意事项
 
