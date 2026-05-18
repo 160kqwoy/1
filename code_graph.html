@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码依赖关系图 - practice02/chat_client.py</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .graph-container {
+            overflow: auto;
+            max-width: 100%;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        svg {
+            display: block;
+            margin: 0 auto;
+        }
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .legend h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        .legend-text {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>代码依赖关系图</h1>
+        <p>文件: practice02/chat_client.py</p>
+        
+        <div class="graph-container">
+            <svg width="500" height="350" viewBox="0 0 500 350" xmlns="http://www.w3.org/2000/svg">
+                <!-- 背景 -->
+                <rect fill="white" x="0" y="0" width="500" height="350"/>
+                
+                <!-- 模块边界 -->
+                <rect x="30" y="30" width="440" height="290" fill="#f8f8f8" stroke="#808080" stroke-width="1" rx="8"/>
+                <text x="250" y="55" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#333">chat_client 模块</text>
+                
+                <!-- 中心节点 - chat_client -->
+                <g>
+                    <ellipse cx="250" cy="95" rx="60" ry="22" fill="#ffffff" stroke="#333" stroke-width="2"/>
+                    <text x="250" y="100" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#333">chat_client</text>
+                </g>
+                
+                <!-- 左下方节点 - load_env -->
+                <g>
+                    <ellipse cx="140" cy="230" rx="50" ry="20" fill="#e8f5e9" stroke="#4CAF50" stroke-width="1.5"/>
+                    <text x="140" y="235" text-anchor="middle" font-family="Arial" font-size="13" fill="#2e7d32">load_env</text>
+                </g>
+                
+                <!-- 中间下方节点 - main -->
+                <g>
+                    <ellipse cx="250" cy="230" rx="35" ry="20" fill="#e3f2fd" stroke="#2196F3" stroke-width="1.5"/>
+                    <text x="250" y="235" text-anchor="middle" font-family="Arial" font-size="13" fill="#1565C0">main</text>
+                </g>
+                
+                <!-- 右下方节点 - stream_llm_response -->
+                <g>
+                    <ellipse cx="360" cy="230" rx="70" ry="20" fill="#fff3e0" stroke="#FF9800" stroke-width="1.5"/>
+                    <text x="360" y="235" text-anchor="middle" font-family="Arial" font-size="12" fill="#e65100">stream_llm_response</text>
+                </g>
+                
+                <!-- 箭头定义 -->
+                <defs>
+                    <marker id="arrow1" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                        <polygon points="0 0, 10 4, 0 8" fill="#808080"/>
+                    </marker>
+                    <marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                        <polygon points="0 0, 10 4, 0 8" fill="#333"/>
+                    </marker>
+                </defs>
+                
+                <!-- 虚线：定义关系（类到函数） -->
+                <path d="M210,115 Q180,140 150,190" fill="none" stroke="#808080" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow1)"/>
+                <path d="M250,115 L250,190" fill="none" stroke="#808080" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow1)"/>
+                <path d="M290,115 Q320,140 350,190" fill="none" stroke="#808080" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow1)"/>
+                
+                <!-- 实线：调用关系（main 调用其他函数） -->
+                <path d="M230,210 Q200,210 170,220" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+                <path d="M270,210 Q300,210 330,220" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+                
+                <!-- 标签 -->
+                <text x="140" y="265" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">加载环境变量</text>
+                <text x="250" y="265" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">主入口函数</text>
+                <text x="360" y="265" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">流式LLM响应</text>
+            </svg>
+        </div>
+        
+        <div class="legend">
+            <h3>图例</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffffff; border: 2px solid #333; border-radius: 50%;"></div>
+                <span class="legend-text">模块/类</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e8f5e9; border: 1.5px solid #4CAF50; border-radius: 50%;"></div>
+                <span class="legend-text">load_env - 加载环境变量</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e3f2fd; border: 1.5px solid #2196F3; border-radius: 50%;"></div>
+                <span class="legend-text">main - 主入口函数</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fff3e0; border: 1.5px solid #FF9800; border-radius: 50%;"></div>
+                <span class="legend-text">stream_llm_response - 流式响应处理</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #808080; height: 3px; border-radius: 0;"></div>
+                <span class="legend-text">虚线: 定义关系（类包含函数）</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #333; height: 3px; border-radius: 0;"></div>
+                <span class="legend-text">实线: 调用关系（函数调用）</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+            <h3>依赖关系说明</h3>
+            <ul>
+                <li><strong>chat_client</strong> 模块包含三个核心函数</li>
+                <li><strong>main</strong> 是程序入口，调用 <strong>load_env</strong> 加载配置</li>
+                <li><strong>main</strong> 调用 <strong>stream_llm_response</strong> 处理LLM流式响应</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

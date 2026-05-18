@@ -1,0 +1,166 @@
+<!--
+ * Copyright (c) 2015 Mountainstorm
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Original from https://github.com/mountainstorm/jquery.graphviz.svg/blob/master/demo.html
+ -->
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css">
+		<!-- <link rel="stylesheet" href="css/graphviz.svg.css"> -->
+	</head>
+
+	<style>
+        #instructions {
+            color: #000000;
+            position: absolute;
+            z-index: 100;
+            bottom: 0px;
+            left: 0px;
+        }
+    </style>
+	<body>
+		<h4 id="instructions">Click node to highlight; Shift-scroll to zoom; Esc to unhighlight</h4>
+		<div id="graph" style="width: 100%; height: 100%; overflow: scroll;"></div>
+
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+		<script type="text/javascript" src="https://cdn.rawgit.com/jquery/jquery-mousewheel/master/jquery.mousewheel.min.js"></script>
+		<script type="text/javascript" src="https://cdn.rawgit.com/jquery/jquery-color/master/jquery.color.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+		<script type="text/javascript">!function(t){"use strict";String.prototype.startsWith=function(t){return 0==this.indexOf(t)},String.prototype.endsWith=function(t){return-1!==this.indexOf(t,this.length-t.length)};var e=function(t,e){this.type=null,this.options=null,this.enabled=null,this.$element=null,this.init("graphviz.svg",t,e)};e.VERSION="1.0.1",e.GVPT_2_PX=32.5,e.DEFAULTS={url:null,svg:null,shrink:"0.125pt",tooltips:{init:function(e){var i=t(this);i.tooltip({container:e,placement:"auto left",animation:!1,viewport:null}).on("hide.bs.tooltip",function(){if(i.attr("data-tooltip-keepvisible"))return!1})},show:function(){var e=t(this);e.attr("data-tooltip-keepvisible",!0),e.tooltip("show")},hide:function(){var e=t(this);e.removeAttr("data-tooltip-keepvisible"),e.tooltip("hide")},update:function(){var e=t(this);e.attr("data-tooltip-keepvisible")&&e.tooltip("show")}},zoom:!0,highlight:{selected:function(t,e){return t},unselected:function(t,e){return jQuery.Color(t).transition(e,.9)}},ready:null},e.prototype.init=function(e,i,n){if(this.enabled=!0,this.type=e,this.$element=t(i),this.options=this.getOptions(n),n.url){var o=this;t.get(n.url,null,function(e){var i=t("svg",e);o.$element.html(document.adoptNode(i[0])),o.setup()},"xml")}else n.svg&&this.$element.html(n.svg),this.setup()},e.prototype.getDefaults=function(){return e.DEFAULTS},e.prototype.getOptions=function(e){return(e=t.extend({},this.getDefaults(),this.$element.data(),e)).shrink&&("object"!=typeof e.shrink&&(e.shrink={x:e.shrink,y:e.shrink}),e.shrink.x=this.convertToPx(e.shrink.x),e.shrink.y=this.convertToPx(e.shrink.y)),e},e.prototype.setup=function(){var e=this.options,i=t(this.$element.children("svg")),n=i.children("g:first");this.$svg=i,this.$graph=n,this.$background=n.children("polygon:first"),this.$nodes=n.children(".node"),this.$edges=n.children(".edge"),this._nodesByName={},this._edgesByName={},this.$element.addClass("graphviz-svg"),this.$background.length&&this.$element.css("background",this.$background.attr("fill"));var o=this;this.$nodes.each(function(){o.setupNodesEdges(t(this),!0)}),this.$edges.each(function(){o.setupNodesEdges(t(this),!1)});var r=this.$graph.children("title");this.$graph.attr("data-name",r.text()),r.remove(),e.zoom&&this.setupZoom(),e.ready&&e.ready.call(this)},e.prototype.setupNodesEdges=function(e,i){var n=this,o=this.options;e.find("polygon, ellipse, path").each(function(){var e=t(this);e.data("graphviz.svg.color",{fill:e.attr("fill"),stroke:e.attr("stroke")}),i&&o.shrink&&n.scaleNode(e)});var r,s,h=e.children("title");if(h[0]){var a=h.text().replace(/:[snew][ew]?/g,"");e.attr("data-name",a),h.remove(),i?this._nodesByName[a]=e[0]:this._edgesByName[a]=e[0];for(var l=e[0].previousSibling;l&&8!=l.nodeType;)l=l.previousSibling;if(null!=l&&8==l.nodeType){var p=(r=l.nodeValue.trim(),(s=document.createElement("div")).innerHTML=r,s.childNodes[0].nodeValue);p!=a&&e.attr("data-comment",p)}}e.children("a").filter(function(){return t(this).attr("xlink:title")}).each(function(){var e=t(this);e.attr("title",e.attr("xlink:title")),e.removeAttr("xlink:title"),o.tooltips&&o.tooltips.init.call(this,n.$element)})},e.prototype.setupZoom=function(){var t=this,e=this.$element,i=this.$svg;this.zoom={width:i.attr("width"),height:i.attr("height"),percentage:null},this.scaleView(100),e.mousewheel(function(n){if(n.shiftKey){var o=t.zoom.percentage;(o-=n.deltaY*n.deltaFactor)<100&&(o=100);var r=n.pageX-i.offset().left,s=n.pageY-i.offset().top,h=r/i.width(),a=s/i.height(),l=n.pageX-e.offset().left,p=n.pageY-e.offset().top;return t.scaleView(o),e.scrollLeft(h*i.width()+.5-l),e.scrollTop(a*i.height()+.5-p),!1}})},e.prototype.scaleView=function(t){var e=this,i=this.$svg;i.attr("width",t+"%"),i.attr("height",t+"%"),this.zoom.percentage=t,this.$nodes.add(this.$edges).children("a[title]").each(function(){e.options.tooltips.update.call(this)})},e.prototype.scaleNode=function(t){var e=this.options.shrink.x,i=this.options.shrink.y,n=t.prop("tagName");if("ellipse"==n)t.attr("rx",parseFloat(t.attr("rx"))-e),t.attr("ry",parseFloat(t.attr("ry"))-i);else if("polygon"==n){var o=t[0].getBBox(),r=o.x+o.width/2,s=o.y+o.height/2,h=t.attr("points").split(" "),a="";for(var l in h){var p=h[l].split(","),d=parseFloat(p[0]),u=parseFloat(p[1]);a+=(r-d)/(o.width/2)*e+d+","+((s-u)/(o.height/2)*i+u)+" "}t.attr("points",a)}},e.prototype.convertToPx=function(t){var i=t;if("string"==typeof t){var n=t.length,o=1;t.endsWith("px")?n-=2:t.endsWith("pt")&&(n-=2,o=e.GVPT_2_PX),i=parseFloat(t.substring(0,n))*o}return i},e.prototype.findEdge=function(t,e,i){var n=[];for(var o in this._edgesByName){var r=e(t,o);r&&(i&&i.push(this._edgesByName[o]),n.push(r))}return n},e.prototype.findLinked=function(e,i,n,o){var r=t(e),s=null;i&&(s=o);var h=this.findEdge(r.attr("data-name"),n,s);for(var a in h){var l=this._nodesByName[h[a]];o.is(l)||(o.push(l),this.findLinked(l,i,n,o))}},e.prototype.colorElement=function(e,i){var n=this.$element.css("background");e.find("polygon, ellipse, path").each(function(){var e=t(this),o=e.data("graphviz.svg.color");o.fill&&"path"!=e.prop("tagName")&&e.attr("fill",i(o.fill,n)),o.stroke&&e.attr("stroke",i(o.stroke,n))})},e.prototype.restoreElement=function(e){e.find("polygon, ellipse, path").each(function(){var e=t(this),i=e.data("graphviz.svg.color");i.fill&&e.attr("fill",i.fill),i.stroke&&e.attr("stroke",i.stroke)})},e.prototype.nodes=function(){return this.$nodes},e.prototype.edges=function(){return this.$edges},e.prototype.nodesByName=function(){return this._nodesByName},e.prototype.edgesByName=function(){return this._edgesByName},e.prototype.linkedTo=function(e,i){var n=t();return this.findLinked(e,i,function(t,e){var i=null,n="->"+t;return e.endsWith(n)&&(i=e.substring(0,e.length-n.length)),i},n),n},e.prototype.linkedFrom=function(e,i){var n=t();return this.findLinked(e,i,function(t,e){var i=null,n=t+"->";return e.startsWith(n)&&(i=e.substring(n.length)),i},n),n},e.prototype.linked=function(e,i){var n=t();return this.findLinked(e,i,function(t,e){return"^"+name+"--(.*)$"},n),this.findLinked(e,i,function(t,e){return"^(.*)--"+name+"$"},n),n},e.prototype.tooltip=function(e,i){var n=this.options;e.each(function(){t(this).children("a[title]").each(function(){i?n.tooltips.show.call(this):n.tooltips.hide.call(this)})})},e.prototype.bringToFront=function(t){t.detach().appendTo(this.$graph)},e.prototype.sendToBack=function(t){this.$background.length?$element.insertAfter(this.$background):t.detach().prependTo(this.$graph)},e.prototype.highlight=function(e,i){var n=this,o=this.options,r=this.$nodes.add(this.$edges);e&&e.length>0?(r.not(e).each(function(){n.colorElement(t(this),o.highlight.unselected),n.tooltip(t(this))}),e.each(function(){n.colorElement(t(this),o.highlight.selected)}),i&&this.tooltip(e,!0)):(r.each(function(){n.restoreElement(t(this))}),this.tooltip(r))},e.prototype.destroy=function(){var t=this;this.hide(function(){t.$element.off("."+t.type).removeData(t.type)})};var i=t.fn.graphviz;t.fn.graphviz=function(i){return this.each(function(){var n=t(this),o=n.data("graphviz.svg"),r="object"==typeof i&&i;!o&&/destroy/.test(i)||(o||n.data("graphviz.svg",o=new e(this,r)),"string"==typeof i&&o[i]())})},t.fn.graphviz.Constructor=e,t.fn.graphviz.noConflict=function(){return t.fn.graphviz=i,this}}(jQuery);</script>
+		<script type="text/javascript">
+ 			$(document).ready(function(){
+                $("#graph").graphviz({
+                    svg: `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.1.5 (20260411.2331)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="344pt" height="233pt"
+ viewBox="0.00 0.00 344.00 233.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 228.5)">
+<title>G</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-228.5 340,-228.5 340,4 -4,4"/>
+<g id="clust1" class="cluster">
+<title>cluster_G</title>
+<path fill="#808080" fill-opacity="0.094118" stroke="black" d="M20,-8C20,-8 316,-8 316,-8 322,-8 328,-14 328,-20 328,-20 328,-204.5 328,-204.5 328,-210.5 322,-216.5 316,-216.5 316,-216.5 20,-216.5 20,-216.5 14,-216.5 8,-210.5 8,-204.5 8,-204.5 8,-20 8,-20 8,-14 14,-8 20,-8"/>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_chat_client</title>
+<path fill="#808080" fill-opacity="0.094118" stroke="black" d="M28,-16C28,-16 308,-16 308,-16 314,-16 320,-22 320,-28 320,-28 320,-152.5 320,-152.5 320,-158.5 314,-164.5 308,-164.5 308,-164.5 28,-164.5 28,-164.5 22,-164.5 16,-158.5 16,-152.5 16,-152.5 16,-28 16,-28 16,-22 22,-16 28,-16"/>
+<text xml:space="preserve" text-anchor="middle" x="168" y="-147.2" font-family="Times New Roman,serif" font-size="14.00">chat_client</text>
+</g>
+<!-- chat_client -->
+<g id="node1" class="node">
+<title>chat_client</title>
+<g id="a_node1"><a xlink:title="chat_client&#10;C:UsersyzxDesktop人工智能提示1practice02chat_client.py">
+<ellipse fill="#ffffff" fill-opacity="0.698039" stroke="black" cx="152" cy="-190.5" rx="51.35" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="152" y="-185.45" font-family="Times New Roman,serif" font-size="14.00" fill="#000000">chat_client</text>
+</a>
+</g>
+</g>
+<!-- chat_client__load_env -->
+<g id="node2" class="node">
+<title>chat_client__load_env</title>
+<g id="a_node2"><a xlink:title="chat_client.load_env&#10;C:UsersyzxDesktop人工智能提示1practice02chat_client.py:9&#10;function in chat_client">
+<ellipse fill="#ffffff" fill-opacity="0.698039" stroke="black" cx="69" cy="-42" rx="44.7" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="69" y="-36.95" font-family="Times New Roman,serif" font-size="14.00" fill="#000000">load_env</text>
+</a>
+</g>
+</g>
+<!-- chat_client&#45;&gt;chat_client__load_env -->
+<g id="edge1" class="edge">
+<title>chat_client&#45;&gt;chat_client__load_env</title>
+<path fill="none" stroke="#838b8b" stroke-dasharray="5,2" d="M124.52,-175.19C120.26,-172.09 116.21,-168.52 113,-164.5 91.14,-137.14 79.58,-97.97 73.89,-71.57"/>
+<polygon fill="#838b8b" stroke="#838b8b" points="77.35,-71.03 71.96,-61.91 70.48,-72.4 77.35,-71.03"/>
+</g>
+<!-- chat_client__main -->
+<g id="node3" class="node">
+<title>chat_client__main</title>
+<g id="a_node3"><a xlink:title="chat_client.main&#10;C:UsersyzxDesktop人工智能提示1practice02chat_client.py:172&#10;function in chat_client">
+<ellipse fill="#ffffff" fill-opacity="0.698039" stroke="black" cx="152" cy="-114" rx="29.86" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="152" y="-108.95" font-family="Times New Roman,serif" font-size="14.00" fill="#000000">main</text>
+</a>
+</g>
+</g>
+<!-- chat_client&#45;&gt;chat_client__main -->
+<g id="edge2" class="edge">
+<title>chat_client&#45;&gt;chat_client__main</title>
+<path fill="none" stroke="#838b8b" stroke-dasharray="5,2" d="M146.2,-172.22C145.29,-163.6 145.03,-152.96 145.43,-143.2"/>
+<polygon fill="#838b8b" stroke="#838b8b" points="148.91,-143.66 146.13,-133.44 141.92,-143.16 148.91,-143.66"/>
+</g>
+<!-- chat_client&#45;&gt;chat_client__main -->
+<g id="edge3" class="edge">
+<title>chat_client&#45;&gt;chat_client__main</title>
+<path fill="none" stroke="#000000" d="M157.8,-172.22C158.71,-163.6 158.97,-152.96 158.57,-143.2"/>
+<polygon fill="#000000" stroke="#000000" points="162.08,-143.16 157.87,-133.44 155.09,-143.66 162.08,-143.16"/>
+</g>
+<!-- chat_client__stream_llm_response -->
+<g id="node4" class="node">
+<title>chat_client__stream_llm_response</title>
+<g id="a_node4"><a xlink:title="chat_client.stream_llm_response&#10;C:UsersyzxDesktop人工智能提示1practice02chat_client.py:32&#10;function in chat_client">
+<ellipse fill="#ffffff" fill-opacity="0.698039" stroke="black" cx="222" cy="-42" rx="90.25" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="222" y="-36.95" font-family="Times New Roman,serif" font-size="14.00" fill="#000000">stream_llm_response</text>
+</a>
+</g>
+</g>
+<!-- chat_client&#45;&gt;chat_client__stream_llm_response -->
+<g id="edge4" class="edge">
+<title>chat_client&#45;&gt;chat_client__stream_llm_response</title>
+<path fill="none" stroke="#838b8b" stroke-dasharray="5,2" d="M180.22,-175.15C184.29,-172.09 188.08,-168.54 191,-164.5 210.8,-137.07 217.99,-98.18 220.57,-71.84"/>
+<polygon fill="#838b8b" stroke="#838b8b" points="224.06,-72.12 221.37,-61.88 217.08,-71.56 224.06,-72.12"/>
+</g>
+<!-- chat_client__main&#45;&gt;chat_client__load_env -->
+<g id="edge5" class="edge">
+<title>chat_client__main&#45;&gt;chat_client__load_env</title>
+<path fill="none" stroke="#000000" d="M135.2,-98.83C123.97,-89.36 108.93,-76.67 96.02,-65.79"/>
+<polygon fill="#000000" stroke="#000000" points="98.56,-63.35 88.66,-59.58 94.05,-68.7 98.56,-63.35"/>
+</g>
+<!-- chat_client__main&#45;&gt;chat_client__stream_llm_response -->
+<g id="edge6" class="edge">
+<title>chat_client__main&#45;&gt;chat_client__stream_llm_response</title>
+<path fill="none" stroke="#000000" d="M166.85,-98.15C175.56,-89.44 186.81,-78.19 196.87,-68.13"/>
+<polygon fill="#000000" stroke="#000000" points="199.29,-70.66 203.89,-61.11 194.34,-65.71 199.29,-70.66"/>
+</g>
+</g>
+</svg>
+`,
+                    ready: function() {
+                        var gv = this
+                        gv.nodes().click(function () {
+                            var $set = $()
+                            $set.push(this)
+                            $set = $set.add(gv.linkedFrom(this, true))
+                            $set = $set.add(gv.linkedTo(this, true))
+                            gv.highlight($set, true)
+                            gv.bringToFront($set)
+                        })
+                        $(document).keydown(function (evt) {
+                            if (evt.keyCode == 27) {
+                                gv.highlight()
+                            }
+                        })
+                    }
+                });
+            });
+		</script>
+	</body>
+</html>

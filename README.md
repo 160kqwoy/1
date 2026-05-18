@@ -278,6 +278,7 @@ AI: <function_calls>{"name":"anythingllm_query","arguments":{"message":"关于AI
 5. **Practice 05**：学习5W信息提取和聊天历史搜索，实现对话日志记录与检索
 6. **Practice 06**：学习使用subprocess调用外部命令，实现与AnythingLLM知识库的集成
 7. **Practice 07**：学习技能系统集成，动态加载技能列表并通过system prompt发送给LLM
+8. **Practice 08**：学习链式工具调用，实现多轮工具调用的自动衔接
 
 ---
 
@@ -329,9 +330,230 @@ AI: <function_calls>{"name":"use_skill","arguments":{"skill_name":"数据分析"
 分析结果如下...
 ```
 
+---
+
+## Practice 08: 链式工具调用
+
+**功能特点:**
+- 支持链式工具调用（Chained Tool Calls）
+- 前一个工具的输出自动作为后一个工具的输入参数
+- LLM可以根据中间结果自主决定下一步工具调用
+- 支持最多5轮链式调用
+- 自动将工具执行结果注入到对话上下文
+
+**核心机制:**
+- `ChainedCallContext` - 链式调用上下文管理器类，负责管理调用状态和中间变量
+- `execute_tool()` - 执行单个工具调用并返回结果
+- 工具调用循环 - 在main函数中实现，支持多轮工具调用
+- 自动将工具执行结果添加到系统提示词中
+
+**ChainedCallContext类:**
+
+| 方法 | 功能说明 |
+|------|---------|
+| `__init__(max_iterations=5)` | 初始化上下文，设置最大迭代次数 |
+| `start_call(tool_name, arguments)` | 记录工具调用开始，检查是否超过最大迭代次数 |
+| `end_call(tool_name, result)` | 记录工具调用结束，保存结果 |
+| `store_variable(name, value)` | 存储中间变量供后续步骤使用 |
+| `get_variable(name, default)` | 获取存储的中间变量 |
+| `get_last_result()` | 获取上一次工具调用的结果 |
+| `get_call_history()` | 获取完整的调用历史 |
+| `has_more_iterations()` | 检查是否还有剩余迭代次数 |
+| `set_complete(final_result)` | 标记链式调用完成 |
+| `is_chained_call_complete()` | 检查链式调用是否已完成 |
+| `get_summary()` | 生成链式调用摘要报告 |
+
+**execute_chained_tool_call函数:**
+
+```python
+def execute_chained_tool_call(user_input, env_vars, max_iterations=5) -> tuple:
+    """
+    执行链式工具调用的完整流程
+    
+    Args:
+        user_input: 用户的原始请求
+        env_vars: 环境变量配置
+        max_iterations: 最大迭代次数，默认5次
+    
+    Returns:
+        tuple: (最终回答, 上下文对象)
+    """
+```
+
+**build_analysis_prompt函数:**
+
+```python
+def build_analysis_prompt(user_input, call_history, available_tools) -> str:
+    """
+    构建分析提示词，用于指导LLM进行链式工具调用决策
+    
+    Args:
+        user_input: 用户的原始请求
+        call_history: 已执行的工具调用历史列表
+        available_tools: 可用工具列表
+    
+    Returns:
+        str: 构建好的分析提示词
+    """
+```
+
+**提示词结构:**
+
+1. **用户原始请求** - 显示用户的初始问题
+2. **已执行步骤历史** - 包含工具名、参数、结果
+3. **决策规则说明** - 指导LLM如何判断是否需要调用工具
+4. **可用工具列表** - 列出所有可调用的工具及其描述
+5. **JSON输出格式要求** - 定义输出格式规范
+
+**支持的工具列表:**
+
+| 工具名称 | 参数 | 说明 |
+|---------|------|------|
+| `search_history` | query | 搜索聊天历史记录 |
+| `anythingllm_query` | message | 向AnythingLLM查询知识库 |
+| `read_file` | file_path/path/file | 读取指定文件内容 |
+| `write_file` | file_path/path/file, content, append | 写入文件内容 |
+| `delete_file` | file_path/path/file | 删除指定文件 |
+| `list_files` | directory/path/directory_path | 列出目录内容 |
+| `use_skill` | skill_name | 使用指定技能 |
+| `curl_url` | url | 访问指定URL获取网页内容 |
+
+**LLM输出格式:**
+
+```json
+// 完成任务时（可以直接回答用户）
+{
+  "done": true,
+  "answer": "最终回答内容"
+}
+
+// 继续调用工具时（需要获取更多信息）
+{
+  "done": false,
+  "toolcall": {
+    "name": "工具名称",
+    "arguments": {"参数名": "参数值"}
+  }
+}
+```
+
+**系统提示词内容:**
+
+| 部分 | 说明 |
+|------|------|
+| **顺序依赖关系** | 说明工具调用可以形成链式序列，前一个工具的输出可以作为后一个工具的输入 |
+| **中间结果处理** | 说明每轮工具调用后结果会自动保存到上下文变量中（result_1, result_2...） |
+| **决策指导** | 指导LLM如何根据中间结果决定后续操作（信息充足则回答，不足则继续调用） |
+| **上下文变量使用** | 说明使用 `{result_N}` 格式引用第N轮的工具执行结果 |
+| **链式调用示例** | 提供完整的多轮工具调用示例，展示从列出目录到读取文件的完整流程 |
+| **工具选择指南** | 列出每个工具的用途和调用方式 |
+| **格式要求** | 明确工具调用的格式规范 |
+
+**执行流程:**
+
+1. **创建上下文管理器** - 实例化ChainedCallContext，设置最大迭代次数
+2. **循环执行**（最多max_iterations次）:
+   - 调用build_analysis_prompt构建分析提示词
+   - 调用LLM决定下一步操作
+   - 解析LLM响应（JSON格式）
+   - 如果done=true：返回最终回答
+   - 如果done=false：执行工具调用、记录到上下文、继续循环
+
+**链式调用流程:**
+1. 用户输入请求
+2. LLM分析请求，决定是否需要调用工具
+3. 执行工具，获取结果
+4. 将工具结果作为上下文传递给LLM
+5. LLM根据中间结果决定是否继续调用工具或直接回答
+
+**运行方式:**
+```bash
+python practice08/chained_tool_client.py
+```
+
+**使用示例:**
+```
+你: 帮我读取当前目录下的文件列表，然后读取README.md文件内容
+AI: <function_calls>{"name":"list_files","arguments":{"directory":"."}}</function_calls>
+--- 检测到工具调用 ---
+工具名称: list_files
+参数: {"directory": "."}
+[链式调用] 第 1 次工具调用
+[系统] 正在列出目录: .
+工具执行结果:
+目录内容 (.):
+========================================
+[DIR]  practice01
+[DIR]  practice02
+[DIR]  practice03
+[FILE] README.md (4520 bytes)
+...
+
+AI: <function_calls>{"name":"read_file","arguments":{"file_path":"README.md"}}</function_calls>
+--- 检测到工具调用 ---
+工具名称: read_file
+参数: {"file_path": "README.md"}
+[链式调用] 第 2 次工具调用
+[系统] 正在读取文件: README.md
+工具执行结果:
+文件内容:
+# AI智能体开发教学项目
+...
+
+AI: 根据您的请求，我已完成以下操作：
+
+1. **列出目录内容**：当前目录包含practice01-practice08等子目录和README.md文件
+2. **读取README.md**：文件内容已成功获取，包含项目概述、学习路径和各练习模块说明
+
+如需进一步处理，请告诉我！
+```
+
 ## 注意事项
 
 - 请确保`.env`文件中的API密钥安全，不要提交到版本控制
 - 根据实际使用的LLM服务调整配置参数
 - 流式输出需要服务端支持stream模式
 - 天气查询功能依赖外部服务(wttr.in)，需要网络连接
+
+## 长期记忆系统
+
+Practice 08新增了长期记忆系统(`memory_manager.py`)，支持跨会话存储和检索用户信息：
+
+### 记忆结构
+
+| 类型 | 说明 |
+|------|------|
+| `user_profile` | 用户基本信息 |
+| `conversation_summaries` | 对话历史摘要 |
+| `preferences` | 用户偏好设置 |
+| `entities` | 重要实体信息 |
+| `skill_usage` | 技能使用统计 |
+
+### 主要功能
+
+- **用户资料管理**：存储和更新用户基本信息
+- **对话摘要存储**：保存对话历史摘要，支持搜索
+- **偏好设置**：记录用户偏好和习惯
+- **实体识别**：存储重要实体信息
+- **技能统计**：记录技能使用情况和成功率
+- **记忆搜索**：支持关键词搜索所有记忆内容
+
+### 使用示例
+
+```python
+from memory_manager import get_memory_manager
+
+memory = get_memory_manager()
+
+# 添加用户资料
+memory.update_user_profile("user123", {"name": "张三", "company": "成都东软学院"})
+
+# 添加对话摘要
+memory.add_conversation_summary("user123", "用户询问如何访问网页并总结内容")
+
+# 更新偏好
+memory.update_preferences("user123", {"language": "zh", "theme": "dark"})
+
+# 搜索记忆
+results = memory.search_memory("网页")
+```

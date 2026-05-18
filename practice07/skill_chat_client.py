@@ -286,24 +286,39 @@ def llm_request(env_vars, messages, stream=False):
                     print(f"\n[LLM错误] {obj['error']}")
                     return None, None
                 
-                if obj.get('choices') and len(obj['choices']) > 0:
-                    content = obj['choices'][0].get('message', {}).get('content', '')
-                    usage = obj.get('usage', {})
-                    
-                    if not content:
-                        print(f"\n[LLM错误] 响应内容为空")
+                print(f"[系统] 响应JSON结构: {list(obj.keys())}")
+                
+                if obj.get('choices'):
+                    print(f"[系统] choices数量: {len(obj['choices'])}")
+                    if len(obj['choices']) > 0:
+                        print(f"[系统] choices[0]结构: {list(obj['choices'][0].keys())}")
+                        message = obj['choices'][0].get('message', {})
+                        print(f"[系统] message结构: {list(message.keys())}")
+                        content = message.get('content', '')
+                        print(f"[系统] content长度: {len(content)}")
+                        print(f"[系统] content前200字符: {content[:200]}")
+                        usage = obj.get('usage', {})
+                        
+                        if not content:
+                            print(f"\n[LLM错误] 响应内容为空")
+                            print(f"[系统] 完整响应: {json.dumps(obj, ensure_ascii=False, indent=2)[:2000]}")
+                            return None, None
+                        
+                        return content, {
+                            'prompt_tokens': usage.get('prompt_tokens', 0),
+                            'completion_tokens': usage.get('completion_tokens', 0),
+                            'total_tokens': usage.get('total_tokens', 0)
+                        }
+                    else:
+                        print(f"\n[LLM错误] choices数组为空")
                         return None, None
-                    
-                    return content, {
-                        'prompt_tokens': usage.get('prompt_tokens', 0),
-                        'completion_tokens': usage.get('completion_tokens', 0),
-                        'total_tokens': usage.get('total_tokens', 0)
-                    }
                 else:
                     print(f"\n[LLM错误] 没有找到 choices 字段")
+                    print(f"[系统] 完整响应: {json.dumps(obj, ensure_ascii=False, indent=2)[:2000]}")
                     return None, None
             except json.JSONDecodeError:
                 print("\n[LLM错误] JSON解析失败")
+                print(f"[系统] 响应内容前500字符: {response_data[:500]}")
                 return None, None
         
         else:
@@ -753,7 +768,12 @@ def main():
                             {"role": "system", "content": f"请按照以下技能内容执行任务：\n\n{skill_content}"},
                             {"role": "user", "content": user_input}
                         ]
+                        print(f"[系统] 技能消息数量: {len(skill_messages)}")
+                        print(f"[系统] 技能消息总长度: {sum(len(m.get('content', '')) for m in skill_messages)} 字符")
                         skill_response, skill_usage = llm_request(env_vars, skill_messages)
+                        
+                        print(f"[系统] 技能响应类型: {type(skill_response)}")
+                        print(f"[系统] 技能响应值: {repr(skill_response)}")
                         
                         if skill_response:
                             print(f"\n技能执行结果:\n{skill_response}")

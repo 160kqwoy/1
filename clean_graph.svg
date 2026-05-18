@@ -1,0 +1,55 @@
+<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect fill="#ffffff" width="500" height="300"/>
+  
+  <!-- 模块边界 -->
+  <rect x="30" y="20" width="440" height="260" fill="#f5f5f5" stroke="#808080" stroke-width="1" rx="8"/>
+  <text x="250" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">chat_client 模块</text>
+  
+  <!-- 中心节点 -->
+  <ellipse cx="250" cy="90" rx="55" ry="20" fill="#ffffff" stroke="#333" stroke-width="2"/>
+  <text x="250" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">chat_client</text>
+  
+  <!-- load_env 节点 -->
+  <ellipse cx="130" cy="220" rx="45" ry="18" fill="#e8f5e9" stroke="#4CAF50" stroke-width="1.5"/>
+  <text x="130" y="225" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2e7d32">load_env</text>
+  
+  <!-- main 节点 -->
+  <ellipse cx="250" cy="220" rx="32" ry="18" fill="#e3f2fd" stroke="#2196F3" stroke-width="1.5"/>
+  <text x="250" y="225" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#1565C0">main</text>
+  
+  <!-- stream_llm_response 节点 -->
+  <ellipse cx="370" cy="220" rx="65" ry="18" fill="#fff3e0" stroke="#FF9800" stroke-width="1.5"/>
+  <text x="370" y="225" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#e65100">stream_llm_response</text>
+  
+  <!-- 虚线：定义关系 -->
+  <path d="M215,108 Q180,130 150,180" fill="none" stroke="#808080" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <path d="M250,108 L250,180" fill="none" stroke="#808080" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <path d="M285,108 Q320,130 350,180" fill="none" stroke="#808080" stroke-width="1.5" stroke-dasharray="5,3"/>
+  
+  <!-- 实线：调用关系 -->
+  <path d="M232,202 Q200,202 160,212" fill="none" stroke="#333" stroke-width="2"/>
+  <path d="M268,202 Q300,202 340,212" fill="none" stroke="#333" stroke-width="2"/>
+  
+  <!-- 箭头标记 -->
+  <defs>
+    <marker id="arrow1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#808080"/>
+    </marker>
+    <marker id="arrow2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#333"/>
+    </marker>
+  </defs>
+  
+  <!-- 添加箭头 -->
+  <path d="M150,180 L140,190" fill="none" stroke="#808080" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <path d="M250,180 L250,190" fill="none" stroke="#808080" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <path d="M350,180 L360,190" fill="none" stroke="#808080" stroke-width="1.5" marker-end="url(#arrow1)"/>
+  <path d="M160,212 L150,218" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+  <path d="M340,212 L350,218" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+  
+  <!-- 标签 -->
+  <text x="130" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">加载环境变量</text>
+  <text x="250" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">主入口函数</text>
+  <text x="370" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">流式LLM响应</text>
+</svg>
